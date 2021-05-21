@@ -43,18 +43,26 @@ class CheckCOnnectionState extends State<CheckConnection> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: connectivityResult == ConnectivityResult.wifi
+        body: flag //connectivityResult == ConnectivityResult.wifi
             ? MyHomePage()
-            : connectivityResult == ConnectivityResult.mobile
-                ? MyHomePage()
-                : NoConnection());
+            //: connectivityResult == ConnectivityResult.mobile
+            //  ? MyHomePage()
+            : noConnection());
   }
 
   Future isConnected() async {
     var result = await Connectivity().checkConnectivity();
-    setState(() {
-      connectivityResult = result;
-    });
+    if (result == ConnectivityResult.mobile ||
+        result == ConnectivityResult.wifi) {
+      setState(() {
+        flag = true;
+        //connectivityResult = result;
+      });
+    } else {
+      setState(() {
+        flag = false;
+      });
+    }
   }
 }
 
@@ -106,29 +114,22 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class NoConnection extends StatefulWidget {
-  @override
-  _NoConnectionState createState() => _NoConnectionState();
-}
-
-class _NoConnectionState extends State<NoConnection> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text('check your internet connection'),
-        Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: ElevatedButton(
-            child: Text('Reload'),
-            onPressed: () {
-              CheckConnection();
-            },
-          ),
-        )
-      ],
-    );
-  }
+Widget noConnection() {
+  var chk = CheckCOnnectionState();
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Center(child: Text('check your internet connection')),
+      Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: ElevatedButton(
+          child: Text('Reload'),
+          onPressed: () {
+            chk.isConnected();
+          },
+        ),
+      )
+    ],
+  );
 }
