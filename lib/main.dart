@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Corona App',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          primarySwatch: Colors.blue[900],
         ),
         home: CheckConnection(),
       ),
@@ -33,7 +33,8 @@ class CheckConnection extends StatefulWidget {
 
 class CheckCOnnectionState extends State<CheckConnection> {
   ConnectivityResult connectivityResult = ConnectivityResult.none;
-  bool flag = false;
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -43,26 +44,23 @@ class CheckCOnnectionState extends State<CheckConnection> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: flag //connectivityResult == ConnectivityResult.wifi
+        body: connectivityResult == ConnectivityResult.wifi
             ? MyHomePage()
-            //: connectivityResult == ConnectivityResult.mobile
-            //  ? MyHomePage()
-            : noConnection());
+            : connectivityResult == ConnectivityResult.mobile
+                ? MyHomePage()
+                : isLoading
+                    ? CircularProgressIndicator()
+                    : NoConnection(onClick: () {
+                        isConnected();
+                      }));
   }
 
   Future isConnected() async {
     var result = await Connectivity().checkConnectivity();
-    if (result == ConnectivityResult.mobile ||
-        result == ConnectivityResult.wifi) {
-      setState(() {
-        flag = true;
-        //connectivityResult = result;
-      });
-    } else {
-      setState(() {
-        flag = false;
-      });
-    }
+    setState(() {
+      isLoading = false;
+      connectivityResult = result;
+    });
   }
 }
 
@@ -114,22 +112,35 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-Widget noConnection() {
-  var chk = CheckCOnnectionState();
-  return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      Center(child: Text('check your internet connection')),
-      Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: ElevatedButton(
-          child: Text('Reload'),
-          onPressed: () {
-            chk.isConnected();
-          },
-        ),
-      )
-    ],
-  );
+class NoConnection extends StatefulWidget {
+  Function onClick;
+  NoConnection({this.onClick});
+  @override
+  _NoConnectionState createState() => _NoConnectionState();
+}
+
+class _NoConnectionState extends State<NoConnection> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Center(
+            child: Text(
+          'check your internet connection !!',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        )),
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: ElevatedButton(
+            child: Text('Reload'),
+            onPressed: () {
+              widget.onClick();
+            },
+          ),
+        )
+      ],
+    );
+  }
 }
